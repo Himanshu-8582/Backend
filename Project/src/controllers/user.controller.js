@@ -1,14 +1,13 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
-import User from '../models/user.model.js';
-import { uploadToCloudinary } from '../utils/cloudinary.js';
+import {User} from '../models/user.model.js';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 
 const registerUser = asyncHandler(async (req, res) => {
 
     // Get data from frontend
-    const { fullName,username, email, password } = req.body;      
-    console.log('User Registration Data:', { username, email, password });
+    const { fullName, username, email, password } = req.body;
 
     // Validations
     if ( [fullName,email,password,username].some((field) => field?.trim()==="" )) {
@@ -31,10 +30,12 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // upload them to cloudinary
-    const avatar = await uploadToCloudinary(avatarLocalPath);
-    const coverImage = await uploadToCloudinary(coverImageLocalPath);
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    console.log('Uploaded Avatar:', avatar);
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+    console.log('Uploaded Cover Image:', coverImage);
     if (!avatar) {
-        throw new ApiError(400, 'Avatar file is required');
+        throw new ApiError(400, 'Avatar upload failed');
     }
 
     // create user object in db
@@ -48,7 +49,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     // Remove password and refreshToken from response
-    const createdUser = await newUser.findById(newUser._id).select('-password -refreshToken');   // exclude sensitive info
+    const createdUser = await User.findById(newUser._id).select('-password -refreshToken');   // exclude sensitive info
     
     // check for created user
     if (!createdUser) {
