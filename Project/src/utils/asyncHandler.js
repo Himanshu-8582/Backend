@@ -1,5 +1,7 @@
-export const asyncHandler=(requestHandler) => {
-    (req, res, next) => {
+
+// Note:- This function must return a callback function which takes req,res,next as parameters
+export const asyncHandler = (requestHandler) => {
+    return (req, res, next) => {
         Promise.resolve(requestHandler(req, res, next))
             .catch((err) => next(err));
     }
